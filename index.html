@@ -83,6 +83,15 @@
             })
         }
 
+        function onLoad(){
+            const token = localStorage.getItem('jwt');
+            if(token){
+                getDashboard();
+            }
+        }
+
+      // onLoad();
+
         
     </script>
 </body>

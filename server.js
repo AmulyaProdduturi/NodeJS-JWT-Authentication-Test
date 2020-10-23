@@ -26,8 +26,19 @@ const secretKey= "My super secret key";
 
 const jwtMW = exjwt({
     secret: secretKey,
-    algorithms: ['HS256']
+    algorithms: ['HS256'],
+    isRevoked: isRevokedCallback
 });
+
+var isRevokedCallback = function(req, payload, done){
+    var issuer = payload.iss;
+    var tokenId = payload.jti;
+  
+    data.getRevokedToken(issuer, tokenId, function(err, token){
+      if (err) { return done(err); }
+      return done(null, !!token);
+    });
+  };
 
 let users=[
     {
@@ -95,24 +106,24 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use(function(err,req,res,next){    
-    if(err.name === 'UnauthorizedError'){
-        if(err.inner.name == "TokenExpiredError"){        
-            axios.get('http://localhost:3000');
-            return;
+app.use(function (err, req, res, next) {
+
+    if(err.name === 'UnauthorizedError') {
+      if(err.inner.name == 'TokenExpiredError') {
+          console.log(err.inner.name);
+          axios.get('http://localhost:3000');
+          return;
         }
         res.status(401).json({
-            success: false,
-            officialError : err,
-            err: 'Username or password is incorrect 2'
-        });               
-    }else{
+                success: false,
+                officialError: err,
+                err: 'Username or password is incorrect 2'
+        });
+    } else {
         next(err);
     }
-    
-})
+  });
 
 app.listen(PORT, () => {
     console.log(`Serving on port ${PORT}`);
 });
-
