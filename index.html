@@ -86,10 +86,10 @@
             })
         }        
 
-        // A few Utility Functions for the redirect feature
+        
         function logout() {
             history.replaceState('http://localhost:3000', 'Login', '/');
-            localStorage.clear();   // To eliminate the entire contents of the local storage. Tokens and expiration.         
+            localStorage.clear();           
             window.location.reload();
         }
 
