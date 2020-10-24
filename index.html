@@ -39,7 +39,7 @@
                 username : document.getElementById('username').value,
                 password : document.getElementById('password').value,
             };
-            history.pushState(null,null, '/')
+            //history.pushState(null,null, '/')
             axios.post('/api/login',data)
                 .then(res => {
                     document.getElementById('username').value = ''
@@ -47,6 +47,7 @@
                     if(res && res.data && res.data.success){
                         const token = res.data.token;
                         localStorage.setItem('jwt',token);
+                        setExpiry();
                         getDashboard();
                     }
                     
@@ -54,6 +55,7 @@
         }
 
         function getDashboard(){
+            senseExpiry();
             const token = localStorage.getItem('jwt');
             axios.get('/api/dashboard',{
                 headers : {
@@ -63,12 +65,13 @@
                 if(res && res.data && res.data.success){
                     document.querySelector('h1.row').innerHTML = 'Dashboard';
                     document.querySelector('main').innerHTML = res.data.myContent;
-                    history.pushState(null,null, '/api/dashboard')
+                    window.history.pushState("http://localhost:3000",'title', '/api/dashboard');
                 }
             })
         }
 
         function getSettings(){
+            senseExpiry();
             const token = localStorage.getItem('jwt');
             axios.get('/api/settings',{
                 headers : {
@@ -78,21 +81,45 @@
                 if(res && res.data && res.data.success){
                     document.querySelector('h1.row').innerHTML = 'Settings';
                     document.querySelector('main').innerHTML = res.data.myContent;
-                    history.pushState(null,null, '/api/settings')
+                    window.history.pushState("http://localhost:3000",'title', '/api/settings')
                 }
             })
+        }        
+
+        // A few Utility Functions for the redirect feature
+        function logout() {
+            history.replaceState('http://localhost:3000', 'Login', '/');
+            localStorage.clear();   // To eliminate the entire contents of the local storage. Tokens and expiration.         
+            window.location.reload();
         }
 
-        function onLoad(){
-            const token = localStorage.getItem('jwt');
-            if(token){
-                getDashboard();
+        function setExpiry() {
+            console.log('Inside setExpiry');
+            var expiry = Date.now();
+            var time = 180000;            
+            expiry = expiry + time;
+            localStorage.setItem('expire', expiry);
+        }
+
+        function senseExpiry() {
+            const checkIfExpired = setInterval(
+                function () {
+                    checkExpiry();
+                }
+                , 180000);
+        }
+
+        function checkExpiry() {
+            const expiration = localStorage.getItem('expire');
+            const hasExpired = Date.now();
+
+            if(hasExpired > expiration) {
+                console.log('Token Expired. You will be redirected');
+                logout();
+            } else {
+                console.log('Token Active');
             }
         }
-
-      // onLoad();
-
-        
     </script>
 </body>
 </html>
